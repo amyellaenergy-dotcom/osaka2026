@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 京阪6天5夜行程隨身助手</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fdf4f3',
+              100: '#fbe8e6',
+              500: '#e05347',
+              600: '#c83e33',
+              700: '#a72f26',
+            },
+            matcha: {
+              50: '#f3f6f1',
+              100: '#e3ece0',
+              500: '#628a55',
+              600: '#4d6f42',
+              700: '#3c5733',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 隱藏滾動條但保持滾動能力 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased font-sans pb-24 md:pb-8">
+
+  <!-- Mobile Top Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-brand-500/20">
+          京
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-800 leading-tight">2026 京阪6天5夜小助手</h1>
+          <p class="text-[10px] text-slate-400">11/17 - 11/22・京都 & 大阪</p>
+        </div>
+      </div>
+      <!-- 匯率抽屜觸發按鈕 -->
+      <button onclick="toggleCurrencyModal()" class="flex items-center space-x-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-full font-medium transition-all">
+        <i data-lucide="calculator" class="w-3.5 h-3.5 text-brand-500"></i>
+        <span>匯率換算</span>
+      </button>
+    </div>
+
+    <!-- 主頁籤切換 (行程、交通、美食、清單) -->
+    <div class="max-w-3xl mx-auto px-4 flex border-t border-slate-100 space-x-2 py-1.5 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('itinerary')" id="tab-btn-itinerary" class="tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-brand-500 text-white transition-all shadow-sm">
+        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+        <span>每日行程</span>
+      </button>
+      <button onclick="switchTab('transit')" id="tab-btn-transit" class="tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 transition-all">
+        <i data-lucide="train" class="w-3.5 h-3.5"></i>
+        <span>交通指南</span>
+      </button>
+      <button onclick="switchTab('dining')" id="tab-btn-dining" class="tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 transition-all">
+        <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
+        <span>美食地圖</span>
+      </button>
+      <button onclick="switchTab('shopping')" id="tab-btn-shopping" class="tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 transition-all">
+        <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+        <span>品牌攻略</span>
+      </button>
+      <button onclick="switchTab('checklist')" id="tab-btn-checklist" class="tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 transition-all">
+        <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+        <span>採購清單</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主內容容器 -->
+  <main class="max-w-3xl mx-auto px-4 py-4 space-y-4">
+
+    <!-- ==================== TAB 1: 每日行程 ==================== -->
+    <section id="panel-itinerary" class="tab-panel space-y-4">
+      
+      <!-- 天數滑動選擇器 -->
+      <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
+        <button onclick="selectDay(1)" id="day-pill-1" class="day-pill px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border border-brand-500 bg-brand-500 text-white shadow-sm">
+          Day 1 (11/17)
+        </button>
+        <button onclick="selectDay(2)" id="day-pill-2" class="day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+          Day 2 (11/18)
+        </button>
+        <button onclick="selectDay(3)" id="day-pill-3" class="day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+          Day 3 (11/19) 和服日
+        </button>
+        <button onclick="selectDay(4)" id="day-pill-4" class="day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+          Day 4 (11/20) 中崎梅田
+        </button>
+        <button onclick="selectDay(5)" id="day-pill-5" class="day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+          Day 5 (11/21) 橘街採購
+        </button>
+        <button onclick="selectDay(6)" id="day-pill-6" class="day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">
+          Day 6 (11/22)
+        </button>
+      </div>
+
+      <!-- 當日主題卡片 -->
+      <div class="bg-gradient-to-r from-brand-600 to-brand-500 text-white p-4 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <span id="current-day-label" class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 uppercase tracking-wider mb-1">Day 1</span>
+            <h2 id="current-day-title" class="text-base font-bold">抵達京都・文創與設計街區漫步</h2>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-brand-100 block">入住飯店</span>
+            <span id="current-day-hotel" class="text-xs font-semibold">Hop Inn Kyoto Shijo Omiya</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 當日時間軸 (由 JS 動態填入) -->
+      <div id="day-timeline" class="space-y-3">
+        <!-- 動態渲染項目 -->
+      </div>
+
+      <!-- 重點小叮嚀 -->
+      <div id="day-tips-card" class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-800 space-y-1">
+        <div class="flex items-center space-x-1.5 font-bold">
+          <i data-lucide="info" class="w-4 h-4 text-amber-600"></i>
+          <span>當日備忘小筆記</span>
+        </div>
+        <p id="day-tips-text" class="text-amber-700 leading-relaxed"></p>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: 交通指南 ==================== -->
+    <section id="panel-transit" class="tab-panel hidden space-y-3">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+          <i data-lucide="navigation" class="w-4 h-4"></i>
+          <span>關鍵區間乘車指南</span>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- Haruka -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>關西機場 ➔ 京都車站 (JR 特急 Haruka)</span>
+              </span>
+              <span class="text-slate-400">約 75 分鐘</span>
+            </div>
+            <p class="text-slate-600">於關西機場第1航廈 JR 閘口掃描電子票 QR code 取票劃位，全車對號座，直達京都車站免轉車。</p>
+          </div>
+
+          <!-- 京都 -> 宇治 -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>京都車站 ➔ JR 宇治站 (JR 奈良線)</span>
+              </span>
+              <span class="text-slate-400">快速約 18-20 分鐘</span>
+            </div>
+            <p class="text-slate-600">於京都站 8、9、10 月台搭乘「JR 奈良線」快速或區間快速，直達 JR 宇治站出站即可直奔中村藤吉抽號碼牌。</p>
+          </div>
+
+          <!-- 11/19 和服移動 -->
+          <div class="p-3 bg-matcha-50 rounded-xl border border-matcha-100 space-y-1">
+            <div class="flex justify-between items-center font-bold text-matcha-700">
+              <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-matcha-500"></span>
+                <span>11/19 和服日：A 租 B 還省力動線</span>
+              </span>
+              <span class="text-matcha-600">推薦方案</span>
+            </div>
+            <p class="text-slate-600">
+              清晨由京都站搭 JR 奈良線至「稻荷站」（出站即達鳥居）拍無人空景 ➔ 搭京阪電車至「清水五條站」步行到 MOCOMOCO 清水寺店著裝 ➔ 漫步至市川屋珈琲 ➔ 沿產寧坂、二年坂一路緩下坡拍照 ➔ 祇園店還衣，省下回頭爬坡力氣！
+            </p>
+          </div>
+
+          <!-- 京都 -> 大阪 -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                <span>京都 (四條大宮) ➔ 大阪 (WELLSTAY難波)</span>
+              </span>
+              <span class="text-slate-400">約 55 分鐘</span>
+            </div>
+            <p class="text-slate-600">從「大宮站」搭阪急京都線特急直達「大阪梅田站」，下車轉乘 Osaka Metro 御堂筋線至「難波站」或「大國町站」，出站步行至飯店寄放行李。</p>
+          </div>
+
+          <!-- 大阪 -> 機場 -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                <span>難波 ➔ 關西機場 (南海電鐵特急 Rapi:t)</span>
+              </span>
+              <span class="text-slate-400">約 38 分鐘</span>
+            </div>
+            <p class="text-slate-600">從南海難波站搭乘藍色車頭的 Rapi:t 特急，全車指定席，專屬大型行李架，直達關西機場第一航廈。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: 美食推薦 ==================== -->
+    <section id="panel-dining" class="tab-panel hidden space-y-3">
+      <!-- 甜點與咖啡館 (含市川屋珈琲) -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wide">
+          <i data-lucide="coffee" class="w-4 h-4"></i>
+          <span>精選必吃甜點、三明治與手作麵包</span>
+        </div>
+        <div class="space-y-2.5 text-xs">
+          <div class="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200">
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-bold text-slate-900">市川屋珈琲 (清水寺／五條坂旁)</span>
+              <span class="text-[10px] bg-brand-500 text-white px-2 py-0.5 rounded font-bold">11/19 必去</span>
+            </div>
+            <p class="text-slate-600 mb-1">京都市東山区渋谷通東大路西入鐘鋳町396-2（週四正常營業）</p>
+        <p class="text-slate-700 font-medium">✨ 招牌必點：季節水果三明治（季節のフルーツサンド）</p>
+        <p class="text-slate-500 text-[11px] mt-0.5">百年陶藝町家老屋改建，鮮奶油輕盈不膩，搭配厚切鮮甜水果。穿和服在店內拍照極具日式氛圍，享用時留意袖口即可！</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=市川屋珈琲+京都" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-brand-600 bg-white border border-brand-200 px-2.5 py-1 rounded-lg hover:bg-brand-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-brand-500"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </div>
+
+      <div class="p-2.5 bg-orange-50/60 rounded-xl border border-orange-200">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-slate-900">Amam Dacotan 京都店 (六角通室町)</span>
+          <span class="text-[10px] bg-orange-600 text-white px-2 py-0.5 rounded font-bold">11/18 神級早餐</span>
+        </div>
+        <p class="text-slate-600 mb-1">中京區骨屋町141（近四條烏丸，離四條大宮飯店約 12 分鐘）</p>
+        <p class="text-slate-700 font-medium">✨ 必買招牌：明太子法棍、開心果生甜甜圈、厚切香腸堡</p>
+        <p class="text-slate-500 text-[11px] mt-0.5">福岡排隊烘焙天花板！町家老屋烘焙空間宛如童話世界，外帶出爐麵包當做上午看展的幸福早餐。</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=Amam+Dacotan+Kyoto" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-orange-700 bg-white border border-orange-200 px-2.5 py-1 rounded-lg hover:bg-orange-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-orange-600"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </div>
+
+      <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-slate-900">太陽之塔 喫茶店 (大阪中崎町)</span>
+          <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">11/20 下午茶</span>
+        </div>
+        <p class="text-slate-600 mb-1">大阪昭和懷舊復古老屋風，推薦手工焦糖布丁與色彩繽紛的哈密瓜奶油蘇打。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 宇治與市區高CP值抹茶特選 -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center space-x-2 text-matcha-600 font-bold text-xs uppercase tracking-wide">
+      <i data-lucide="sparkles" class="w-4 h-4"></i>
+      <span>精選抹茶名店與購買指引</span>
+    </div>
+    <div class="space-y-2.5 text-xs">
+      <div class="p-2.5 bg-matcha-50/60 rounded-xl border border-matcha-200">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-slate-900">中村藤吉本店 (JR 宇治站出站直達)</span>
+          <span class="text-[10px] bg-matcha-600 text-white px-2 py-0.5 rounded font-bold">宇治首選</span>
+        </div>
+        <p class="text-slate-700 font-medium">✨ 招牌必點：竹筒生茶凍芭菲（生茶ゼリイ）、現煮抹茶蕎麥麵</p>
+        <p class="text-slate-500 text-[11px] mt-0.5">產地直銷定價公道，抹茶粉、生巧克力與茶包伴手禮最齊全。建議抵達第一時間抽號碼牌。</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=中村藤吉本店+宇治本店" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-matcha-700 bg-white border border-matcha-200 px-2.5 py-1 rounded-lg hover:bg-matcha-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-matcha-600"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </div>
+
+      <div class="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-200">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-slate-900">堀井七茗園 (宇治橋通商店街)</span>
+          <span class="text-[10px] bg-emerald-700 text-white px-2 py-0.5 rounded font-bold">高 CP 內行首選</span>
+        </div>
+        <p class="text-slate-600 mb-1">從 JR 宇治站步行往平等院必經之路上。</p>
+        <p class="text-slate-500 text-[11px] mt-0.5">擁有室町時代將軍指定宇治唯一的現存古茶園（奧之山茶園），老鋪茶粉香氣極濃、價格實在無觀光灌水！</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=堀井七茗園+宇治" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-emerald-700"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </div>
+
+      <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-slate-900">丸久小山園 & 柳櫻園 (京都高島屋 B1 專櫃)</span>
+          <span class="text-[10px] bg-slate-700 text-white px-1.5 py-0.5 rounded">市區一站購足</span>
+        </div>
+        <p class="text-slate-600 mb-1">四條河原町高島屋地下美食街（公定價、免排隊、免特地跑小倉工廠）。</p>
+        <p class="text-slate-500 text-[11px] mt-0.5">推薦丸久小山園「青嵐/五十鈴」抹茶粉，以及柳櫻園超平價又爆香的「香悅焙茶（かりがね焙じ茶）」。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 京都 & 大阪正餐嚴選名店 -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+    <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wide">
+      <i data-lucide="utensils" class="w-4 h-4"></i>
+      <span>正餐嚴選必吃清單</span>
+    </div>
+    <ul class="text-xs space-y-2 text-slate-600">
+      <li class="p-2.5 bg-brand-50/60 rounded-xl border border-brand-200">
+        <div class="flex justify-between items-center mb-0.5">
+          <span class="font-bold text-slate-900">京うな和 本店 (Kyo Unawa 中京區八百屋町)</span>
+          <span class="text-[10px] bg-brand-600 text-white px-1.5 py-0.5 rounded">11/17 晚餐首選</span>
+        </div>
+        <p class="text-slate-700">✨ 備長炭直火炭烤活鰻，外皮極酥脆、肉質肥美！招牌「鰻魚三吃（櫃まぶし）」三種吃法層次絕佳。</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=Kyo+Unawa+Honten+Kyoto" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-brand-600 bg-white border border-brand-200 px-2.5 py-1 rounded-lg hover:bg-brand-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-brand-500"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </li>
+      <li class="p-2.5 bg-amber-50/60 rounded-xl border border-amber-200">
+        <div class="flex justify-between items-center mb-0.5">
+          <span class="font-bold text-slate-900">喜多郎壽司 道具屋筋橫丁店 (難波千日前)</span>
+          <span class="text-[10px] bg-amber-700 text-white px-1.5 py-0.5 rounded">11/21 慶功晚餐</span>
+        </div>
+        <p class="text-slate-700">✨ 昭和風隱密橫丁內的居酒屋名店！必點備長炭爐端現烤整條魚與現握壽司，氣氛道地熱絡，價格親民。</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=寿し炉端喜多郎寿し+道具屋筋横丁店" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center space-x-1 text-[11px] font-bold text-amber-800 bg-white border border-amber-200 px-2.5 py-1 rounded-lg hover:bg-amber-50 transition-all shadow-xs">
+          <i data-lucide="map-pin" class="w-3 h-3 text-amber-700"></i>
+          <span>一鍵導航 Google Map</span>
+        </a>
+      </li>
+      <li class="p-2 bg-slate-50 rounded-lg">
+        <span class="font-bold text-slate-800">木津市場海鮮食堂 (難波)：</span>11/21 清晨早起吃黑門市場外更划算的產地直送海膽丼與生魚片。
+      </li>
+      <li class="p-2 bg-slate-50 rounded-lg">
+        <span class="font-bold text-slate-800">麵屋 豬一 (京都河原町)：</span>米其林必比登推薦，鰹魚高湯白醬油／黑醬油拉麵與極細嫩和牛片。
+      </li>
+    </ul>
+  </div>
+</section>
+
+    <!-- ==================== TAB 4: 品牌攻略 (含 On / HOKA / 橘街) ==================== -->
+    <section id="panel-shopping" class="tab-panel hidden space-y-3">
+      <!-- 跑鞋旗艦特輯 -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wide">
+          <i data-lucide="footprints" class="w-4 h-4"></i>
+          <span>兩大必買神鞋：On Cloud & HOKA</span>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- On Cloud 專區 -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-900 text-sm flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-black"></span>
+                <span>On (On Cloud) 採購攻略</span>
+              </span>
+              <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded font-bold">心齋橋 / 梅田</span>
+            </div>
+            <p class="text-slate-700 font-medium">📍 最佳地點：ABC-MART GRAND STAGE 心齋橋店 / atmos 心齋橋 / LUCUA 梅田</p>
+            <p class="text-slate-600">心齋橋 GS 店與 atmos 擁有超大 On 專櫃，款式齊全且享有退稅優惠；就在 HOKA 旗艦店步行 3 分鐘範圍內！</p>
+            <div class="bg-white p-2 rounded-lg border border-slate-100 text-[11px] text-slate-600 space-y-0.5">
+              <p class="font-semibold text-slate-800">👟 達人必試推薦鞋款：</p>
+              <p>• <strong>Cloudmonster 2</strong>：超厚底怪獸緩震，回彈腳感極佳，久走旅遊神鞋。</p>
+              <p>• <strong>Cloudtilt</strong>：與 LOEWE 聯名款同底結構，免綁鞋帶一秒套入，超輕量透氣！</p>
+              <p>• <strong>Cloud 5</strong>：經典日常百搭款，重量極輕、包覆性好。</p>
+            </div>
+          </div>
+
+          <!-- HOKA 專區 -->
+          <div class="p-3 bg-sky-50 rounded-xl border border-sky-200 space-y-1.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-900 text-sm flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                <span>HOKA Shinsaibashi（日本最大直營旗艦店）</span>
+              </span>
+              <span class="text-[10px] bg-sky-600 text-white px-2 py-0.5 rounded font-bold">11/21 必去</span>
+            </div>
+            <p class="text-slate-700 font-medium">📍 位置：大阪市中央區南船場 3-6-16（心齋橋站步行 3 分鐘）</p>
+            <div class="bg-white p-2 rounded-lg border border-sky-100 text-[11px] text-slate-600 space-y-0.5">
+              <p class="font-semibold text-slate-800">👟 達人必試推薦鞋款：</p>
+              <p>• <strong>Bondi 8</strong>：HOKA 緩震之王，極致軟彈，保護膝蓋首選。</p>
+              <p>• <strong>Clifton 9</strong>：兼顧輕量與日常路跑，通勤與出國暴走萬能鞋。</p>
+              <p>• <strong>Tor Ultra / Anacapa</strong>：GORE-TEX 戶外越野健行神鞋，山系穿搭必備。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 服飾與機能裝備 -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wide">
+          <i data-lucide="shirt" class="w-4 h-4"></i>
+          <span>高 CP 值機能服裝 & 戶外選品</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="font-bold text-slate-900 mb-0.5">Workman Colors (難波CITY)</div>
+            <p class="text-slate-600 text-[11px]">超高 CP 值防風防潑水機能外套、彈性工裝褲，只要一般戶外品牌 1/3 價格！</p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="font-bold text-slate-900 mb-0.5">SORA 南堀江橘街店</div>
+            <p class="text-slate-600 text-[11px]">匯集 Patagonia、And Wander、Arcteryx 等高端戶外機能與山系美學服飾。</p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="font-bold text-slate-900 mb-0.5">石井山專 (梅田友都八喜樓上)</div>
+            <p class="text-slate-600 text-[11px]">關西最大專業登山健行專賣店，背包、登山杖、專業防水衣一應俱全。</p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="font-bold text-slate-900 mb-0.5">Yodobashi 梅田 8F 3C相機城</div>
+            <p class="text-slate-600 text-[11px]">全日本最完整相機機身、鏡頭、攝影防潮配件，外國人直接免稅 10% + 折扣。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: 採購清單 ==================== -->
+    <section id="panel-checklist" class="tab-panel hidden space-y-3">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wide">
+            <i data-lucide="check-square" class="w-4 h-4"></i>
+            <span>購物與伴手禮清單</span>
+          </div>
+          <span id="checklist-progress" class="text-xs font-bold text-brand-500">0/10 完成</span>
+        </div>
+
+        <!-- 快速新增輸入框 -->
+        <div class="flex space-x-2">
+          <input type="text" id="new-item-input" placeholder="新增想買的物品或禮物..." class="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-brand-500">
+          <button onclick="addChecklistItem()" class="bg-brand-500 hover:bg-brand-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold">新增</button>
+        </div>
+
+        <!-- 清單項目 -->
+        <div id="checklist-container" class="space-y-2 pt-1 text-xs">
+          <!-- JS 動態生成 -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 匯率換算彈出抽屜 (Modal) -->
+  <div id="currency-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="calculator" class="w-5 h-5 text-brand-500"></i>
+          <h3 class="font-bold text-sm text-slate-800">日幣 ⇄ 台幣即時試算</h3>
+        </div>
+        <button onclick="toggleCurrencyModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-[11px] font-semibold text-slate-500 block mb-1">參考匯率 (1 JPY 換算 TWD)</label>
+          <input type="number" step="0.001" id="exchange-rate" value="0.215" oninput="calculateCurrency('jpy')" class="w-full text-xs border border-slate-200 rounded-lg p-2 font-mono outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-500 block mb-1">日圓金額 (JPY ¥)</label>
+          <input type="number" id="input-jpy" placeholder="例如：3500" oninput="calculateCurrency('jpy')" class="w-full text-sm border border-slate-200 rounded-lg p-2.5 font-bold font-mono outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-500 block mb-1">折合台幣 (TWD NT$)</label>
+          <input type="number" id="input-twd" placeholder="例如：750" oninput="calculateCurrency('twd')" class="w-full text-sm border border-slate-200 rounded-lg p-2.5 font-bold font-mono bg-slate-50 outline-none focus:border-brand-500">
+        </div>
+      </div>
+
+      <button onclick="toggleCurrencyModal()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs py-2.5 rounded-xl transition-all">
+        完成
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript 核心邏輯 -->
+  <script>
+    // --- 完整行程資料庫 (加入 mapQuery 導航字串) ---
+    const itineraryData = {
+      1: {
+        date: "11/17 (一)",
+        title: "抵達京都・新風館TF、寺町通文具香氛與炭烤鰻魚大餐",
+        hotel: "Hop Inn Kyoto Shijo Omiya (四條大宮)",
+        timeline: [
+          { time: "10:25", icon: "plane-landing", title: "降落關西國際機場 (KIX)", desc: "入境通關約 60-80 分鐘，領取行李後至 JR 票閘口掃描電子票兌換 Haruka 特快車票。", mapQuery: "Kansai International Airport" },
+          { time: "12:15", icon: "train", title: "搭乘 Haruka 特快直奔京都", desc: "關西機場直達京都車站（約 75 分鐘），沿途欣賞關西平原風光。", mapQuery: "JR Kyoto Station" },
+          { time: "14:00", icon: "hotel", title: "飯店寄放行李 & 午餐", desc: "四條大宮 Hop Inn 放行李，於四條大宮或烏丸享用平價日式定食。", mapQuery: "Hop Inn Kyoto Shijo Omiya" },
+          { time: "15:30", icon: "map-pin", title: "新風館 Traveler's Factory Kyoto", desc: "搭阪急至烏丸站步行至新風館，挑選手帳限定商品並蓋上專屬紀念章。", mapQuery: "TRAVELER'S FACTORY KYOTO" },
+          { time: "16:30", icon: "book-open", title: "寺町通文具聚落 & APFR 香氛", desc: "漫步寺町通逛 360 年歷史「鳩居堂」手工信箋、隔壁「ANGERS」洋房雜貨，並至二條通「APFR KYOTO」挑選木質調擴香。", mapQuery: "京都鳩居堂 本店" },
+          { time: "18:00", icon: "utensils", title: "晚餐：京うな和 本店 (炭烤活鰻三吃)", desc: "品嚐中京區炭火備長炭現烤活鰻，皮脆肉嫩，原味、海苔芥末與茶泡飯三種吃法！", mapQuery: "Kyo Unawa Honten" },
+          { time: "19:30", icon: "shopping-bag", title: "SOU・SOU 本店群 & 高島屋茶粉採買", desc: "探索 SOU・SOU 服飾、足袋與布袋，順路至四條高島屋 B1 專櫃一站買齊丸久小山園（青嵐）與柳櫻園焙茶。", mapQuery: "SOU・SOU 服飾" }
+        ],
+        tips: "【行程叮嚀】高島屋 B1 專櫃皆為公定價且免排隊，比特地跑小倉工廠省下 2 小時車程！"
+      },
+      2: {
+        date: "11/18 (二)",
+        title: "神級麵包 ➔ teamLab 光影 ➔ 宇治名茶深度漫遊",
+        hotel: "Hop Inn Kyoto Shijo Omiya (四條大宮)",
+        timeline: [
+          { time: "08:30", icon: "coffee", title: "早餐：Amam Dacotan (中京區骨屋町)", desc: "早起到這間福岡超人氣町家烘焙店，外帶剛出爐的招牌明太子法棍與開心果生甜甜圈。", mapQuery: "Amam Dacotan Kyoto" },
+          { time: "09:45", icon: "sparkles", title: "teamLab Biovortex Kyoto (沈浸式光影)", desc: "京都站南側探索全新數位藝術展館（預留約 2 至 2.5 小時拍照與互動）。", mapQuery: "teamLab Biovortex Kyoto" },
+          { time: "12:15", icon: "train", title: "京都站搭 JR 奈良線前往宇治", desc: "快速列車約 20 分鐘直達 JR 宇治站，步行開始茶鄉巡禮。", mapQuery: "JR Uji Station" },
+          { time: "12:45", icon: "utensils", title: "午茶與茶點：中村藤吉本店 / 堀井七茗園", desc: "第一時間抽中村藤吉號碼牌品嚐竹筒生茶凍芭菲與抹茶蕎麥麵；順路在老字號「堀井七茗園」採買道地高 CP 值抹茶粉。", mapQuery: "中村藤吉本店 宇治本店" },
+          { time: "15:00", icon: "landmark", title: "國寶平等院鳳凰堂 & 宇治川漫步", desc: "欣賞十元日幣背面的鳳凰堂木造建築，沿宇治川旁林蔭小徑感受茶鄉悠閒節奏。", mapQuery: "平等院 宇治" },
+          { time: "17:30", icon: "refresh-cw", title: "京阪電車回京都 / 居酒屋晚餐", desc: "由京阪宇治站搭車回祇園四條或四條大宮，享用日式串燒與清酒。", mapQuery: "Keihan Gion-Shijo Station" }
+        ],
+        tips: "【排隊技巧】中村藤吉本店若候位過長，可直接買外帶生茶凍杯在宇治川畔享用，省下排隊時間！"
+      },
+      3: {
+        date: "11/19 (三)",
+        title: "和服美拍日：MOCOMOCO A租B還・市川屋水果三明治・東山漫步",
+        hotel: "Hop Inn Kyoto Shijo Omiya (四條大宮)",
+        timeline: [
+          { time: "07:30", icon: "camera", title: "清晨伏見稻荷大社（便服輕鬆拍）", desc: "穿便服避開千本鳥居人潮，拍出無人鳥居大景；回程也不受和服拘束。", mapQuery: "伏見稻荷大社" },
+          { time: "09:30", icon: "sparkles", title: "MOCOMOCO 清水寺店換裝 (A租)", desc: "預約早班著裝，衣服花色最齊！同時登記「A地租B地還（送至祇園店）」服務，私服與行李由店家免費運送。", mapQuery: "Kyoto Kimono Rental MOCOMOCO Kiyomizu-dera" },
+          { time: "11:30", icon: "coffee", title: "市川屋珈琲：百年町家午茶 & 水果三明治", desc: "自 MOCOMOCO 步行 6-7 分鐘即達。穿和服在町家老屋品嚐招牌季節水果三明治與手沖咖啡美拍（吃時留意袖口避免沾染鮮奶油）。", mapQuery: "市川屋珈琲" },
+          { time: "12:45", icon: "landmark", title: "清水寺 ➔ 產寧坂 (三年坂) ➔ 二年坂", desc: "從仁王門漫步而下，沿途木造町家、茶屋與石階，邊走邊逛特色選物店與古都街景。", mapQuery: "清水寺 京都" },
+          { time: "14:15", icon: "palette", title: "八坂庚申堂 ➔ 石塀小路（避人潮精華）", desc: "色彩繽紛的猴子許願包（和服拍照絕景），接著漫步清幽無人的石塀小路與高台寺前。", mapQuery: "八坂庚申堂" },
+          { time: "16:00", icon: "refresh-cw", title: "MOCOMOCO 八坂神社祇園店還衣 (B還)", desc: "抵達祇園店取回行李換回便服，全程下坡不走回頭路、不擠大眾運輸！", mapQuery: "京都着物レンタルMOCOMOCO 八坂神社祇園店" },
+          { time: "17:15", icon: "shopping-bag", title: "錦市場散策 ➔ 四條河原町晚餐", desc: "換回便服跨過鴨川，逛傍晚錦市場與河原町商圈，晚上享用熱呼呼京料理豆腐鍋或拉麵。", mapQuery: "錦市場" }
+        ],
+        tips: "【11/19 必訪】市川屋珈琲週四正常營業！水果三明治吐司極鬆軟、鮮奶油不甜膩，搭配町家木格窗非常上鏡。"
+      },
+      4: {
+        date: "11/20 (四)",
+        title: "移宿大阪・中崎町昭和老屋 ➔ 梅田 3C 相機與登山裝備",
+        hotel: "大阪 WELLSTAY 飯店 (難波地區)",
+        timeline: [
+          { time: "09:30", icon: "hotel", title: "退房 ➔ 移動至大阪 WELLSTAY 難波", desc: "搭阪急京都線至梅田轉乘地鐵御堂筋線抵達難波/大國町，飯店寄放行李。", mapQuery: "WELLSTAY難波" },
+          { time: "11:30", icon: "utensils", title: "難波午餐：炸牛元村 (牛かつ もと村)", desc: "品嚐外酥內嫩、可在石板上自由炙烤的招牌炸牛排定食。", mapQuery: "牛かつもと村 難波店" },
+          { time: "13:00", icon: "coffee", title: "中崎町昭和老屋慢活散策", desc: "搭地鐵至中崎町，穿梭在木造長屋窄巷中，探索特色古著選物與「太陽之塔喫茶店」。", mapQuery: "中崎町車站" },
+          { time: "15:30", icon: "tv", title: "梅田 Yodobashi：8 層樓 3C 相機與配件", desc: "全日本最齊全相機、鏡頭、攝影配件與免稅專區，一次買足心儀 3C。", mapQuery: "友都八喜 梅田" },
+          { time: "17:30", icon: "compass", title: "石井山專 (Ishii Sports) 專業登山旗艦", desc: "梅田友都八喜樓上西日本最大登山專門店，各大頂級健行鞋、防風防水外套與背包任選。", mapQuery: "石井山專 友都八喜梅田店" },
+          { time: "19:30", icon: "shopping-bag", title: "梅田 LUCUA 百貨 ➔ 回飯店入住", desc: "逛逛梅田潮流服飾，在地下美食街晚餐後搭地鐵回 WELLSTAY 難波辦理入住。", mapQuery: "LUCUA Osaka" }
+        ],
+        tips: "【購物優勢】友都八喜出示外國護照享免稅 10% + 刷指定信用卡享 5% 折扣，買 3C 相機最划算！"
+      },
+      5: {
+        date: "11/21 (五)",
+        title: "木津海鮮朝市 ➔ 橘街選物 ➔ 買鞋(On/HOKA) ➔ 難波心齋橋採購狂歡",
+        hotel: "大阪 WELLSTAY 飯店 (難波地區)",
+        timeline: [
+          { time: "07:30", icon: "utensils", title: "木津市場：海鮮朝市新鮮早餐", desc: "自 WELLSTAY 步行 6 分鐘即達！避開觀光人潮，品嚐新鮮海膽丼、生魚片刺身與鮮甜當季水果。", mapQuery: "木津市場 大阪" },
+          { time: "10:30", icon: "shopping-bag", title: "南堀江「橘街 (Orange Street)」選物巡禮", desc: "探訪美式復古家飾杯盤「Acme Furniture」、戶外機能名店「SORA」、頂級製帽「OVERRIDE」與四層樓綠植咖啡「BIOTOP」。", mapQuery: "Orange Street Osaka" },
+          { time: "13:30", icon: "footprints", title: "雙神鞋巡禮：On (On Cloud) & HOKA 旗艦店", desc: "至 ABC-MART GS / Atmos 試穿 On Cloudmonster 與免綁帶神鞋 Cloudtilt；緊接著到隔壁 HOKA 日本旗艦店試穿 Bondi 8 與越野款！", mapQuery: "HOKA 大阪心齋橋店" },
+          { time: "15:00", icon: "shirt", title: "Workman Colors (難波CITY南館 2F)", desc: "步行即達！高 CP 值戶外防風防潑水機能外套、健行工裝褲，價格親民實用。", mapQuery: "なんばCITY" },
+          { time: "16:30", icon: "shopping-cart", title: "UNIQLO 戎橋店、MUJI 難波旗艦店採買", desc: "採購秋冬保暖發熱衣、針織衫與生活雜貨，免稅動線快速便利。", mapQuery: "UNIQLO Shinsaibashi" },
+          { time: "19:00", icon: "flame", title: "慶功晚餐：喜多郎壽司 (道具屋筋橫丁店)", desc: "千日前道地橫丁內！圍坐爐端前享用備長炭現烤鮮魚、現握握壽司配生啤酒，氣氛熱鬧超道地。", mapQuery: "寿し炉端喜多郎寿し 道具屋筋横丁店" }
+        ],
+        tips: "【買鞋動線】On 與 HOKA 集中在心齋橋／南船場交界處，相距僅步行 3 分鐘，試穿比價極度順暢！"
+      },
+      6: {
+        date: "11/22 (六)",
+        title: "悠閒退房・南海特急 Rapi:t 返程",
+        hotel: "溫暖的家",
+        timeline: [
+          { time: "09:30", icon: "check-circle", title: "飯店退房 & 前往南海難波站", desc: "檢查房內隨身行李，步行至南海難波站。", mapQuery: "Nankai Namba Station" },
+          { time: "10:30", icon: "train", title: "搭乘南海電鐵特急 Rapi:t 直達機場", desc: "乘搭藍色特急列車（約 38 分鐘）直達關西機場第一航廈，全車對號座舒適安全。", mapQuery: "Kansai International Airport" },
+          { time: "11:30", icon: "plane", title: "關西機場報到・出境審查", desc: "辦理登機手續、托運行李並通過安檢出境。", mapQuery: "Kansai International Airport Terminal 1" },
+          { time: "12:30", icon: "shopping-cart", title: "免稅店最後衝刺補貨", desc: "免稅店採購 ROYCE' 生巧克力、白色戀人、東京芭娜娜等伴手禮後登機返台。", mapQuery: "Kansai International Airport Duty Free" }
+        ],
+        tips: "【機場建議】關西機場近期出境安檢人潮較多，建議務必於起飛前 2.5 - 3 小時抵達機場最穩妥！"
+      }
+    };
+
+    // --- 伴手禮清單資料 ---
+    let checklistItems = [
+      { id: 1, text: "On Cloud 跑鞋 (Cloudmonster / Cloudtilt) - 心齋橋GS/Atmos", checked: false },
+      { id: 2, text: "HOKA 越野健行鞋 / 慢跑鞋 (Bondi 8) - 心齋橋旗艦店", checked: false },
+      { id: 3, text: "Workman Colors 機能防風防潑水外套 (難波CITY)", checked: false },
+      { id: 4, text: "丸久小山園 抹茶粉 (青嵐/五十鈴 - 高島屋B1)", checked: false },
+      { id: 5, text: "柳櫻園 香悅焙茶 (高島屋B1 - 高CP值首選)", checked: false },
+      { id: 6, text: "中村藤吉 生茶凍 / 抹茶費南雪 (宇治本店)", checked: false },
+      { id: 7, text: "Traveler's Factory 京都限定手帳商品 (新風館)", checked: false },
+      { id: 8, text: "SOU・SOU 數字印花配件 / 口金包", checked: false },
+      { id: 9, text: "APFR KYOTO 木質調室內擴香 / 線香", checked: false },
+      { id: 10, text: "3C 相機 / 鏡頭 / 配件 (梅田 Yodobashi / Bic Camera)", checked: false }
+    ];
+
+    // --- 當前天數狀態 ---
+    let currentDay = 1;
+
+    // --- 頁面載入初始化 ---
+    document.addEventListener("DOMContentLoaded", () => {
+      renderDay(1);
+      renderChecklist();
+      lucide.createIcons();
+    });
+
+    // --- 天數切換 ---
+    function selectDay(dayNum) {
+      currentDay = dayNum;
+      
+      // 更新按鈕外觀
+      for (let i = 1; i <= 6; i++) {
+        const pill = document.getElementById(`day-pill-${i}`);
+        if (i === dayNum) {
+          pill.className = "day-pill px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border border-brand-500 bg-brand-500 text-white shadow-sm";
+        } else {
+          pill.className = "day-pill px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50";
+        }
+      }
+
+      renderDay(dayNum);
+    }
+
+    // --- 渲染特定天數行程 ---
+    function renderDay(dayNum) {
+      const data = itineraryData[dayNum];
+      document.getElementById("current-day-label").innerText = `Day ${dayNum} (${data.date})`;
+      document.getElementById("current-day-title").innerText = data.title;
+      document.getElementById("current-day-hotel").innerText = data.hotel;
+      document.getElementById("day-tips-text").innerText = data.tips;
+
+      const timelineContainer = document.getElementById("day-timeline");
+      timelineContainer.innerHTML = "";
+
+      data.timeline.forEach((item, index) => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex space-x-3 items-start transition-all hover:border-slate-300";
+        itemEl.innerHTML = `
+          <div class="flex-shrink-0 flex flex-col items-center">
+            <span class="text-[11px] font-bold font-mono text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md mb-1.5">${item.time}</span>
+            <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+              <i data-lucide="${item.icon}" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+          <div class="flex-1 pt-0.5">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <h4 class="text-xs font-bold text-slate-800">${item.title}</h4>
+              ${item.mapQuery ? `
+                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.mapQuery)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 text-[10px] text-brand-600 bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded-md font-semibold shrink-0 transition-colors">
+                  <i data-lucide="map-pin" class="w-3 h-3 text-brand-500"></i>
+                  <span>地圖</span>
+                </a>
+              ` : ''}
+            </div>
+            <p class="text-[11px] text-slate-500 leading-relaxed">${item.desc}</p>
+          </div>
+        `;
+        timelineContainer.appendChild(itemEl);
+      });
+
+      lucide.createIcons();
+    }
+
+    // --- 主 Tab 切換 ---
+    function switchTab(tabName) {
+      const tabs = ['itinerary', 'transit', 'dining', 'shopping', 'checklist'];
+      tabs.forEach(t => {
+        const panel = document.getElementById(`panel-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          panel.classList.remove('hidden');
+          btn.className = "tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-brand-500 text-white transition-all shadow-sm";
+        } else {
+          panel.classList.add('hidden');
+          btn.className = "tab-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 transition-all";
+        }
+      });
+      lucide.createIcons();
+    }
+
+    // --- 伴手禮清單操作 ---
+    function renderChecklist() {
+      const container = document.getElementById("checklist-container");
+      container.innerHTML = "";
+
+      let checkedCount = 0;
+      checklistItems.forEach(item => {
+        if (item.checked) checkedCount++;
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white transition-all";
+        row.innerHTML = `
+          <label class="flex items-center space-x-2.5 flex-1 cursor-pointer">
+            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleItem(${item.id})" class="w-4 h-4 rounded text-brand-500 focus:ring-brand-500 border-slate-300">
+            <span class="${item.checked ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} text-xs">${item.text}</span>
+          </label>
+          <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 p-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(row);
+      });
+
+      document.getElementById("checklist-progress").innerText = `${checkedCount}/${checklistItems.length} 完成`;
+      lucide.createIcons();
+    }
+
+    function toggleItem(id) {
+      checklistItems = checklistItems.map(item => item.id === id ? { ...item, checked: !item.checked } : item);
+      renderChecklist();
+    }
+
+    function deleteItem(id) {
+      checklistItems = checklistItems.filter(item => item.id !== id);
+      renderChecklist();
+    }
+
+    function addChecklistItem() {
+      const input = document.getElementById("new-item-input");
+      const val = input.value.trim();
+      if (!val) return;
+      checklistItems.push({ id: Date.now(), text: val, checked: false });
+      input.value = "";
+      renderChecklist();
+    }
+
+    // --- 匯率換算邏輯 ---
+    function toggleCurrencyModal() {
+      const modal = document.getElementById("currency-modal");
+      modal.classList.toggle("hidden");
+    }
+
+    function calculateCurrency(from) {
+      const rate = parseFloat(document.getElementById("exchange-rate").value) || 0.215;
+      const jpyInput = document.getElementById("input-jpy");
+      const twdInput = document.getElementById("input-twd");
+
+      if (from === 'jpy') {
+        const jpy = parseFloat(jpyInput.value);
+        if (!isNaN(jpy)) {
+          twdInput.value = Math.round(jpy * rate);
+        } else {
+          twdInput.value = '';
+        }
+      } else {
+        const twd = parseFloat(twdInput.value);
+        if (!isNaN(twd) && rate > 0) {
+          jpyInput.value = Math.round(twd / rate);
+        } else {
+          jpyInput.value = '';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
